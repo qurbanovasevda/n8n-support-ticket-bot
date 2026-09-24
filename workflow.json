@@ -1,0 +1,1068 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8a5d3f9f-c056-414d-84ed-85b71e104556",
+      "name": "Telegram Trigger",
+      "webhookId": "f0fb905c-c14e-496f-b94d-68eac7d16091",
+      "credentials": {
+        "telegramApi": {
+          "id": "HRZs1XT83fiaWc4N",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  let category = 'unrecognized';\n  \n  try {\n    const raw = item.json.response;\n    const parsed = JSON.parse(raw);\n    const allowed = ['billing', 'technical', 'general'];\n    \n    if (parsed.category && allowed.includes(parsed.category)) {\n      category = parsed.category;\n    }\n  } catch (e) {\n    // JSON parse alınmadı — unrecognized olaraq qalır\n  }\n  \n  items.push({\n    json: {\n      ...item.json,\n      category: category\n    }\n  });\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "a2bb363e-cf88-4441-a0f3-f062c71c4faa",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category}}",
+                    "rightValue": "billing",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "bb3fdf55-f435-401b-970f-5a7d28eff18b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "billing"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "964e73c6-54bf-4de9-8de8-daa02e2fa58e",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "technical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "technical"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "75ae1e0f-96c6-4c4b-bb05-ef6dd39211b6",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "general",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "general"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        0
+      ],
+      "id": "a7b9f4c0-17ca-4ed6-9a9b-3e0383fecd6c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Texniki dəstək tələbiniz qeydə alındı 🔧 Mütəxəssislərimiz probleminizi araşdırıb tezliklə sizinlə əlaqə saxlayacaq.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1264,
+        -208
+      ],
+      "id": "56637fa9-9988-4f9e-90cf-7350346ff567",
+      "name": "Send a text message1",
+      "webhookId": "d60c127a-ef66-438a-be73-dc9953d9dbed",
+      "credentials": {
+        "telegramApi": {
+          "id": "HRZs1XT83fiaWc4N",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Mesajınız üçün təşəkkür edirik! 📩 Sualınız qeydə alındı, komandamız ən qısa zamanda cavab verəcək.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1456,
+        288
+      ],
+      "id": "01388145-9db1-47ea-bb4f-61e19ff82e9e",
+      "name": "Send a text message2",
+      "webhookId": "da35629f-667d-4d88-a2bd-18d6044acc5a",
+      "credentials": {
+        "telegramApi": {
+          "id": "HRZs1XT83fiaWc4N",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Üzr istəyirik, mesajınızı tam başa düşə bilmədik 🤔 Zəhmət olmasa probleminizi bir az daha ətraflı izah edin ki, sizə düzgün istiqamətdə kömək edə bilək.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1264,
+        496
+      ],
+      "id": "3af590b8-5af7-4a1f-93ce-cc7827d9e630",
+      "name": "Send a text message3",
+      "webhookId": "4a4ad89e-5b9e-42a5-bd46-29bd2e10c144",
+      "credentials": {
+        "telegramApi": {
+          "id": "HRZs1XT83fiaWc4N",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14DzV40W1f0k-uwok73079fxOv2vTmvYMjq5ijR4vaQo/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "User": "={{ $('Telegram Trigger').item.json.message.from.username }}",
+            "Category": "={{ $('Code in JavaScript').item.json.category }}",
+            "Message": "={{ $('Telegram Trigger').item.json.message.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "User",
+              "displayName": "User",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1520,
+        -560
+      ],
+      "id": "e93e2718-b1a5-431f-bc3e-486538af3f5a",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleApi": {
+          "id": "u1bRq16MVDOGGDEI",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id}}",
+        "text": "  Faktura ilə bağlı müraciətiniz qeydə alındı ✅ Komandamız tezliklə sizinlə əlaqə saxlayacaq.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1168,
+        -432
+      ],
+      "id": "20b100b5-1b41-4f8a-9dcb-bdd385621fac",
+      "name": "Send a text message",
+      "webhookId": "f42a1bd0-ee1f-4254-88f5-a139061f6d08",
+      "credentials": {
+        "telegramApi": {
+          "id": "HRZs1XT83fiaWc4N",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14DzV40W1f0k-uwok73079fxOv2vTmvYMjq5ijR4vaQo/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "User": "={{ $('Telegram Trigger').item.json.message.from.username }}",
+            "Category": "={{ $('Code in JavaScript').item.json.category }}",
+            "Message": "={{ $('Telegram Trigger').item.json.message.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "User",
+              "displayName": "User",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        -384
+      ],
+      "id": "6c6a19ad-a761-44d4-b716-e48799b35eb8",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleApi": {
+          "id": "u1bRq16MVDOGGDEI",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14DzV40W1f0k-uwok73079fxOv2vTmvYMjq5ijR4vaQo/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "User": "={{ $('Telegram Trigger').item.json.message.from.username }}",
+            "Category": "={{ $('Code in JavaScript').item.json.category }}",
+            "Message": "={{ $('Telegram Trigger').item.json.message.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "User",
+              "displayName": "User",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2240,
+        64
+      ],
+      "id": "f05729ec-4653-4d40-af4d-dafc1db01ed2",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleApi": {
+          "id": "u1bRq16MVDOGGDEI",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/14DzV40W1f0k-uwok73079fxOv2vTmvYMjq5ijR4vaQo/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "User": "={{ $('Telegram Trigger').item.json.message.from.username }}",
+            "Category": "={{ $('Code in JavaScript').item.json.category }}",
+            "Message": "={{ $('Telegram Trigger').item.json.message.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "User",
+              "displayName": "User",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1744,
+        576
+      ],
+      "id": "c146c4e0-9d2a-409a-8266-112fcfdf925a",
+      "name": "Append row in sheet3",
+      "credentials": {
+        "googleApi": {
+          "id": "u1bRq16MVDOGGDEI",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=40.4093&longitude=49.8671&current=temperature_2m,weathercode&timezone=Asia%2FBaku",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1472,
+        80
+      ],
+      "id": "0cb9aa16-1878-4558-8e44-54c1cbb59a0c",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3f49ad4c-faf5-4910-86a9-5f36508b6612",
+              "leftValue": "=  {{ $('Telegram Trigger').item.json.message.text.toLowerCase() }}",
+              "rightValue": "hava",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1184,
+        208
+      ],
+      "id": "49bc85d1-a4c0-4479-b0ae-83465f97310a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=  Hazırda Bakıda hava: {{ $json.current.temperature_2m }}°C 🌤️",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1840,
+        16
+      ],
+      "id": "a66029b0-4b30-4ac2-8414-365e45870904",
+      "name": "Send a text message4",
+      "webhookId": "d811a981-bfdc-47d6-9ca9-8e5c687774d8",
+      "credentials": {
+        "telegramApi": {
+          "id": "HRZs1XT83fiaWc4N",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5ebec1b9-dc22-42e8-a241-3ade334ae1a4",
+              "leftValue": "={{ $json.message.text ? \"yes\" : \"no\" }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "f40714fb-416d-4110-8203-385ff818ff71",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "  Zəhmət olmasa mesajınızı mətn şəklində yazın 🙏 Hazırda yalnız yazılı mesajları emal edə bilirəm.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        432
+      ],
+      "id": "196b44b5-ce70-4168-89fc-46f64b83cce0",
+      "name": "Send a text message5",
+      "webhookId": "ab171cfa-352e-40ec-992f-d376f92b20f5",
+      "credentials": {
+        "telegramApi": {
+          "id": "HRZs1XT83fiaWc4N",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Üzr istəyirik, sistemimiz hazırda məşğuldur 🙏 Zəhmət olmasa bir neçə dəqiqə sonra yenidən cəhd edin.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        144
+      ],
+      "id": "51981df0-b8bb-473f-a839-5ac5d132313a",
+      "name": "Send a text message6",
+      "webhookId": "82d288a6-245c-4e2b-90e9-eab5a6237223",
+      "credentials": {
+        "telegramApi": {
+          "id": "HRZs1XT83fiaWc4N",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Telegram bot webhook vasitəsilə mesajları qəbul edir. BotFather token-i və ngrok/public URL tələb edir.",
+        "height": 208,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -224
+      ],
+      "id": "b9d9ab30-b00a-498f-97d7-7b04918dbf87",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gemma4:e2b\",\n  \"prompt\": \"Sən dəstək mesajlarını kateqoriyalaşdıran botsan. Aşağıdakı mesajı oxu və YALNIZ bu JSON formatında cavab ver, başqa heç nə yazma: {\\\"category\\\": \\\"billing\\\"} və ya {\\\"category\\\": \\\"technical\\\"} və ya {\\\"category\\\": \\\"general\\\"}. Mesaj: {{ JSON.stringify($json.message.text).slice(1,-1) }}\",\n  \"stream\": false,\n  \"format\": \"json\",\n  \"options\": {\n    \"num_predict\": 30\n  },\n  \"keep_alive\": \"30m\"\n}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        464,
+        0
+      ],
+      "id": "5ee6a26c-a535-4b07-8b38-2aa264e923f2",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "content": "Lokal Gemma4 modelini (Ollama) çağırır, mesajı billing/technical/general kateqoriyalarından birinə təsnif edir. host.docker.internal istifadə olunur (Docker-dən host-a keçid üçün).",
+        "height": 272,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        384,
+        -288
+      ],
+      "id": "94d10839-8527-44cd-a913-23afffb14e12",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Ollama-nın JSON cavabını parse edir, yalnız icazəli 3 kateqoriyanı qəbul edir. Uyğunsuzluq/xəta halında 'unrecognized' təyin edir.",
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -192
+      ],
+      "id": "0d42ce8c-767f-4a46-a116-2993827476a1",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "AI-nin təyin etdiyi kateqoriyaya görə 4 istiqamətə yönləndirir: billing, technical, general, Fallback (unrecognized üçün).",
+        "height": 208,
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        832,
+        -240
+      ],
+      "id": "412a4396-2796-453c-a6eb-cba874e5310c",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Mesajın mətn olub-olmadığını yoxlayır (sticker/şəkil kimi mətnsiz mesajları filtrləyir).",
+        "height": 192,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        176,
+        160
+      ],
+      "id": "c5ba981c-0405-4c1d-a528-95d212c6485a",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Ollama cavab verməsə (server dayanıb və ya timeout), istifadəçiyə nəzakətli xəta mesajı göndərir.",
+        "height": 192,
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        -128
+      ],
+      "id": "033f9fcd-8945-4551-aab2-2e31df92ace4",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Hər tiketi Google Sheets-ə loglayır: Timestamp, User, Category, Message.",
+        "height": 112,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        -560
+      ],
+      "id": "343b0de3-43ed-4fe5-81d6-9151f021da89",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "Hər tiketi Google Sheets-ə loglayır: Timestamp, User, Category, Message.",
+        "height": 112,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        -368
+      ],
+      "id": "dc948a04-5aa5-4764-a14e-cd73bdf2e911",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "Hər tiketi Google Sheets-ə loglayır: Timestamp, User, Category, Message.",
+        "height": 112,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2432,
+        64
+      ],
+      "id": "624e8c5c-f3dd-459c-bb26-8f869d2da6a9",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "Hər tiketi Google Sheets-ə loglayır: Timestamp, User, Category, Message.",
+        "height": 112,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1936,
+        576
+      ],
+      "id": "44ccf363-3f5b-4d7c-b383-30b4fb31fa6f",
+      "name": "Sticky Note9"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message2": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message3": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message4": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a070e3a8-0db9-4d5b-bd78-80fb2af3b3cd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8153fdee73ed701027f11e64577aef5f0e83dc267546a15715290d0a9b2985c0"
+  },
+  "nodeGroups": [],
+  "id": "Q7v58rvDBQ8u3brq",
+  "tags": []
+}
